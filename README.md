@@ -13,6 +13,10 @@
 - 거래 내역 실시간 확인
 - 모바일 환경 지원
 
+## 실행
+
+https://zelopy.github.io
+
 ## 사용 방법
 
 1. **플레이어 설정**
@@ -33,10 +37,6 @@
 - CSS3
 - JavaScript
 - localStorage를 이용한 데이터 저장
-
-## 실행
-
-https://zelopy.github.io
 
 ## 특징
 
