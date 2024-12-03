@@ -1,0 +1,217 @@
+body {
+	margin: 0;
+	padding: 20px;
+	font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+	background-color: #f8f9fa;
+	min-height: 100vh;
+	overflow: hidden;
+}
+.main-container {
+	display: grid;
+	grid-template-columns: 2fr 2fr 1fr;
+	gap: 25px;
+	height: calc(100vh - 40px);
+}
+.players-container {
+	display: grid;
+	grid-template-rows: 1fr 1fr;
+	gap: 25px;
+}
+.player-section {
+	padding: 20px;
+	border-radius: 16px;
+	box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+	display: flex;
+	flex-direction: column;
+	transition: transform 0.2s;
+	min-height: 0; /* 높이 오버플로우 방지 */
+}
+.player-section:hover {
+	transform: translateY(-3px);
+}
+/* 파스텔톤 배경색 */
+#player-1 {
+	background: linear-gradient(135deg, #FFE5E5 0%, #FFF5F5 100%);  /* 연한 분홍색 */
+}
+#player-2 {
+	background: linear-gradient(135deg, #E5F3FF 0%, #F5FAFF 100%);  /* 연한 하늘색 */
+}
+#player-3 {
+	background: linear-gradient(135deg, #E8FFE5 0%, #F6FFF5 100%);  /* 연한 초록색 */
+}
+#player-4 {
+	background: linear-gradient(135deg, #FFE5F9 0%, #FFF5FC 100%);  /* 연한 보라색 */
+}
+.balance {
+	font-size: 32px;
+	font-weight: bold;
+	color: #2c3e50;
+	margin: 15px 0;
+	text-shadow: 1px 1px 0 rgba(255,255,255,0.5);
+}
+.controls {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+.transfer-controls {
+	display: flex;
+	gap: 8px;
+	margin-top: 12px;
+}
+button {
+	padding: 10px 15px;
+	border: none;
+	border-radius: 8px;
+	cursor: pointer;
+	font-size: 14px;
+	font-weight: 600;
+	transition: all 0.2s;
+	white-space: nowrap;
+}
+button:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.pay-bank {
+	background-color: #FF9B9B;
+	color: white;
+}
+.receive-bank {
+	background-color: #94D494;
+	color: white;
+}
+.transfer {
+	background-color: #94B5D4;
+	color: white;
+}
+select, input {
+	padding: 10px;
+	border: 2px solid rgba(0,0,0,0.1);
+	border-radius: 8px;
+	font-size: 14px;
+	background-color: rgba(255,255,255,0.9);
+	transition: all 0.2s;
+}
+select:focus, input:focus {
+	outline: none;
+	border-color: rgba(0,0,0,0.2);
+	box-shadow: 0 0 0 3px rgba(0,0,0,0.05);
+}
+.transaction-history {
+	background: rgba(255,255,255,0.95);
+	padding: 15px;
+	border-radius: 16px;
+	overflow-y: auto;
+	box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+	backdrop-filter: blur(10px);
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+.transaction-list {
+	flex-grow: 1;
+	overflow-y: auto;
+}
+.transaction-item {
+	padding: 8px;
+	border-bottom: 1px solid rgba(0,0,0,0.05);
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+.transaction-item:hover {
+	background-color: rgba(0,0,0,0.02);
+}
+.positive { color: #4CAF50; }
+.negative { color: #F44336; }
+h2 {
+	margin: 0;
+	color: #2c3e50;
+	font-size: 24px;
+	font-weight: 700;
+}
+h3 {
+	color: #2c3e50;
+	margin: 0 0 10px 0;
+}
+small {
+	color: #666;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 1200px) {
+	.main-container {
+		grid-template-columns: 1fr 1fr;
+	}
+	.transaction-history {
+		grid-column: span 2;
+		height: 200px;
+	}
+}
+
+@media (max-width: 768px) {
+	.main-container {
+		grid-template-columns: 1fr;
+		gap: 15px;
+	}
+	.players-container {
+		gap: 15px;
+	}
+	.player-section {
+		padding: 15px;
+	}
+	.balance {
+		font-size: 24px;
+	}
+	button {
+		padding: 8px 12px;
+	}
+	.transaction-history {
+		grid-column: span 1;
+	}
+}
+
+.player-header {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.player-name {
+	font-size: 24px;
+	font-weight: 700;
+	color: #2c3e50;
+	background: none;
+	border: none;
+	padding: 5px;
+	border-radius: 4px;
+	width: 200px;
+}
+
+.player-name:focus {
+	background: rgba(255, 255, 255, 0.9);
+	outline: 2px solid rgba(0, 0, 0, 0.1);
+}
+
+.player-name:not(:focus) {
+	cursor: pointer;
+}
+
+.player-name:hover:not(:focus) {
+	background: rgba(255, 255, 255, 0.3);
+}
+
+/* 각 플레이어별 배경색 */
+#player-1 {
+	background: linear-gradient(135deg, #FFE5E5 0%, #FFF5F5 100%);
+}
+#player-2 {
+	background: linear-gradient(135deg, #E5F3FF 0%, #F5FAFF 100%);
+}
+#player-3 {
+	background: linear-gradient(135deg, #E8FFE5 0%, #F6FFF5 100%);
+}
+#player-4 {
+	background: linear-gradient(135deg, #FFE5F9 0%, #FFF5FC 100%);
+}
