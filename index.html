@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>부루마블 은행</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            min-height: 100vh;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 20px;
+            height: calc(100vh - 40px);
+        }
+        .player-section {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        .balance {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 10px 0;
+        }
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .transfer-controls {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        button {
+            padding: 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .pay-bank {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .receive-bank {
+            background-color: #27ae60;
+            color: white;
+        }
+        .transfer {
+            background-color: #3498db;
+            color: white;
+        }
+        select, input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .transaction-history {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            height: 150px;
+            overflow-y: auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .transaction-item {
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        .positive { color: #27ae60; }
+        .negative { color: #e74c3c; }
+        h2 {
+            margin: 0;
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-container" id="players"></div>
+    
+    <div class="transaction-history">
+        <h3>거래 내역</h3>
+        <div id="history"></div>
+    </div>
+
+    <script>
+        const STARTING_MONEY = 3000000; // 시작 금액
+        let players = [];
+        let transactions = [];
+
+        function initializePlayers() {
+            for (let i = 1; i <= 4; i++) {
+                players.push({
+                    id: i,
+                    name: `플레이어 ${i}`,
+                    balance: STARTING_MONEY
+                });
+            }
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            const playersDiv = document.getElementById('players');
+            playersDiv.innerHTML = '';
+            
+            players.forEach(player => {
+                const playerSection = document.createElement('div');
+                playerSection.className = 'player-section';
+                
+                // 다른 플레이어 목록 생성
+                const otherPlayers = players
+                    .filter(p => p.id !== player.id)
+                    .map(p => `<option value="${p.id}">${p.name}</option>`)
+                    .join('');
+
+                playerSection.innerHTML = `
+                    <h2>${player.name}</h2>
+                    <div class="balance">${formatMoney(player.balance)}원</div>
+                    <div class="controls">
+                        <div class="bank-controls">
+                            <input type="number" id="amount-${player.id}" placeholder="금액" style="width: 120px;">
+                            <button class="receive-bank" onclick="receiveFromBank(${player.id})">은행에서 받기</button>
+                            <button class="pay-bank" onclick="payToBank(${player.id})">은행에 지불</button>
+                        </div>
+                        <div class="transfer-controls">
+                            <select id="transfer-to-${player.id}">
+                                ${otherPlayers}
+                            </select>
+                            <button class="transfer" onclick="transferMoney(${player.id})">송금하기</button>
+                        </div>
+                    </div>
+                `;
+                playersDiv.appendChild(playerSection);
+            });
+        }
+
+        function formatMoney(amount) {
+            return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        function receiveFromBank(playerId) {
+            const amount = parseInt(document.getElementById(`amount-${playerId}`).value);
+            if (!validateAmount(amount)) return;
+            
+            const player = players.find(p => p.id === playerId);
+            player.balance += amount;
+            addTransaction(player.name, amount, true, '은행');
+            updateDisplay();
+        }
+
+        function payToBank(playerId) {
+            const amount = parseInt(document.getElementById(`amount-${playerId}`).value);
+            if (!validateAmount(amount)) return;
+            
+            const player = players.find(p => p.id === playerId);
+            if (!validateBalance(player, amount)) return;
+            
+            player.balance -= amount;
+            addTransaction(player.name, amount, false, '은행');
+            updateDisplay();
+        }
+
+        function transferMoney(fromPlayerId) {
+            const amount = parseInt(document.getElementById(`amount-${fromPlayerId}`).value);
+            const toPlayerId = parseInt(document.getElementById(`transfer-to-${fromPlayerId}`).value);
+            
+            if (!validateAmount(amount)) return;
+            
+            const fromPlayer = players.find(p => p.id === fromPlayerId);
+            const toPlayer = players.find(p => p.id === toPlayerId);
+            
+            if (!validateBalance(fromPlayer, amount)) return;
+            
+            fromPlayer.balance -= amount;
+            toPlayer.balance += amount;
+            
+            addTransaction(fromPlayer.name, amount, false, toPlayer.name);
+            updateDisplay();
+        }
+
+        function validateAmount(amount) {
+            if (isNaN(amount) || amount <= 0) {
+                alert('올바른 금액을 입력하세요');
+                return false;
+            }
+            return true;
+        }
+
+        function validateBalance(player, amount) {
+            if (player.balance < amount) {
+                alert('잔액이 부족합니다!');
+                return false;
+            }
+            return true;
+        }
+
+        function addTransaction(playerName, amount, isAddition, targetName) {
+            const transaction = {
+                playerName,
+                targetName,
+                amount,
+                isAddition,
+                timestamp: new Date()
+            };
+            transactions.unshift(transaction);
+            updateHistory();
+        }
+
+        function updateHistory() {
+            const historyDiv = document.getElementById('history');
+            historyDiv.innerHTML = transactions.map(t => {
+                let description;
+                if (t.targetName === '은행') {
+                    description = t.isAddition ? 
+                        `${t.playerName}이(가) 은행에서 받음` :
+                        `${t.playerName}이(가) 은행에 지불`;
+                } else {
+                    description = `${t.playerName}이(가) ${t.targetName}에게 송금`;
+                }
+                
+                return `
+                    <div class="transaction-item">
+                        <span>${description}</span>
+                        <span class="${t.isAddition ? 'positive' : 'negative'}">
+                            ${t.isAddition ? '+' : '-'}${formatMoney(t.amount)}원
+                        </span>
+                        <small>(${t.timestamp.toLocaleTimeString()})</small>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 게임 시작 시 4명의 플레이어 초기화
+        initializePlayers();
+    </script>
+</body>
+</html>
