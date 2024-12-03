@@ -11,13 +11,18 @@
             font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
             background-color: #f8f9fa;
             min-height: 100vh;
+            overflow: hidden;
         }
-        .grid-container {
+        .main-container {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: 1fr 1fr;
+            grid-template-columns: 2fr 2fr 1fr;
             gap: 25px;
             height: calc(100vh - 40px);
+        }
+        .players-container {
+            display: grid;
+            grid-template-rows: 1fr 1fr;
+            gap: 25px;
         }
         .player-section {
             padding: 20px;
@@ -26,6 +31,7 @@
             display: flex;
             flex-direction: column;
             transition: transform 0.2s;
+            min-height: 0; /* 높이 오버플로우 방지 */
         }
         .player-section:hover {
             transform: translateY(-3px);
@@ -68,6 +74,7 @@
             font-size: 14px;
             font-weight: 600;
             transition: all 0.2s;
+            white-space: nowrap;
         }
         button:hover {
             transform: translateY(-2px);
@@ -99,17 +106,19 @@
             box-shadow: 0 0 0 3px rgba(0,0,0,0.05);
         }
         .transaction-history {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            right: 20px;
             background: rgba(255,255,255,0.95);
             padding: 15px;
             border-radius: 16px;
-            height: 150px;
             overflow-y: auto;
             box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             backdrop-filter: blur(10px);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .transaction-list {
+            flex-grow: 1;
+            overflow-y: auto;
         }
         .transaction-item {
             padding: 8px;
@@ -138,8 +147,22 @@
         }
 
         /* 반응형 디자인 */
+        @media (max-width: 1200px) {
+            .main-container {
+                grid-template-columns: 1fr 1fr;
+            }
+            .transaction-history {
+                grid-column: span 2;
+                height: 200px;
+            }
+        }
+
         @media (max-width: 768px) {
-            .grid-container {
+            .main-container {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            .players-container {
                 gap: 15px;
             }
             .player-section {
@@ -151,19 +174,24 @@
             button {
                 padding: 8px 12px;
             }
+            .transaction-history {
+                grid-column: span 1;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="grid-container" id="players"></div>
-    
-    <div class="transaction-history">
-        <h3>거래 내역</h3>
-        <div id="history"></div>
+    <div class="main-container">
+        <div class="players-container" id="players-left"></div>
+        <div class="players-container" id="players-right"></div>
+        <div class="transaction-history">
+            <h3>거래 내역</h3>
+            <div class="transaction-list" id="history"></div>
+        </div>
     </div>
 
     <script>
-        const STARTING_MONEY = 3000000; // 시작 금액
+        const STARTING_MONEY = 3000000;
         let players = [];
         let transactions = [];
 
@@ -179,14 +207,15 @@
         }
 
         function updateDisplay() {
-            const playersDiv = document.getElementById('players');
-            playersDiv.innerHTML = '';
+            const playersLeftDiv = document.getElementById('players-left');
+            const playersRightDiv = document.getElementById('players-right');
+            playersLeftDiv.innerHTML = '';
+            playersRightDiv.innerHTML = '';
             
-            players.forEach(player => {
+            players.forEach((player, index) => {
                 const playerSection = document.createElement('div');
                 playerSection.className = 'player-section';
                 
-                // 다른 플레이어 목록 생성
                 const otherPlayers = players
                     .filter(p => p.id !== player.id)
                     .map(p => `<option value="${p.id}">${p.name}</option>`)
@@ -209,7 +238,13 @@
                         </div>
                     </div>
                 `;
-                playersDiv.appendChild(playerSection);
+
+                // 플레이어 1,2는 왼쪽, 3,4는 오른쪽에 배치
+                if (index < 2) {
+                    playersLeftDiv.appendChild(playerSection);
+                } else {
+                    playersRightDiv.appendChild(playerSection);
+                }
             });
         }
 
