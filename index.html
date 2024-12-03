@@ -178,6 +178,50 @@
                 grid-column: span 1;
             }
         }
+		
+		.player-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .player-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+            background: none;
+            border: none;
+            padding: 5px;
+            border-radius: 4px;
+            width: 200px;
+        }
+
+        .player-name:focus {
+            background: rgba(255, 255, 255, 0.9);
+            outline: 2px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .player-name:not(:focus) {
+            cursor: pointer;
+        }
+
+        .player-name:hover:not(:focus) {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* 각 플레이어별 배경색 */
+        #player-1 {
+            background: linear-gradient(135deg, #FFE5E5 0%, #FFF5F5 100%);
+        }
+        #player-2 {
+            background: linear-gradient(135deg, #E5F3FF 0%, #F5FAFF 100%);
+        }
+        #player-3 {
+            background: linear-gradient(135deg, #E8FFE5 0%, #F6FFF5 100%);
+        }
+        #player-4 {
+            background: linear-gradient(135deg, #FFE5F9 0%, #FFF5FC 100%);
+        }
     </style>
 </head>
 <body>
@@ -195,59 +239,80 @@
         let players = [];
         let transactions = [];
 
-        function initializePlayers() {
-            for (let i = 1; i <= 4; i++) {
-                players.push({
-                    id: i,
-                    name: `플레이어 ${i}`,
-                    balance: STARTING_MONEY
-                });
-            }
-            updateDisplay();
-        }
+        // players 배열 초기화 수정
+		function initializePlayers() {
+			for (let i = 1; i <= 4; i++) {
+				players.push({
+					id: i,
+					name: localStorage.getItem(`player${i}Name`) || `플레이어 ${i}`,
+					balance: STARTING_MONEY
+				});
+			}
+			updateDisplay();
+		}
 
-        function updateDisplay() {
-            const playersLeftDiv = document.getElementById('players-left');
-            const playersRightDiv = document.getElementById('players-right');
-            playersLeftDiv.innerHTML = '';
-            playersRightDiv.innerHTML = '';
-            
-            players.forEach((player, index) => {
-                const playerSection = document.createElement('div');
-                playerSection.className = 'player-section';
-				playerSection.id = `player-${player.id}`; // ID 추가
-                
-                const otherPlayers = players
-                    .filter(p => p.id !== player.id)
-                    .map(p => `<option value="${p.id}">${p.name}</option>`)
-                    .join('');
+		// updateDisplay 함수 수정
+		function updateDisplay() {
+			const playersLeftDiv = document.getElementById('players-left');
+			const playersRightDiv = document.getElementById('players-right');
+			playersLeftDiv.innerHTML = '';
+			playersRightDiv.innerHTML = '';
+			
+			players.forEach((player, index) => {
+				const playerSection = document.createElement('div');
+				playerSection.className = 'player-section';
+				playerSection.id = `player-${player.id}`;
+				
+				const otherPlayers = players
+					.filter(p => p.id !== player.id)
+					.map(p => `<option value="${p.id}">${p.name}</option>`)
+					.join('');
 
-                playerSection.innerHTML = `
-                    <h2>${player.name}</h2>
-                    <div class="balance">${formatMoney(player.balance)}원</div>
-                    <div class="controls">
-                        <div class="bank-controls">
-                            <input type="number" id="amount-${player.id}" placeholder="금액" style="width: 120px;">
-                            <button class="receive-bank" onclick="receiveFromBank(${player.id})">은행에서 받기</button>
-                            <button class="pay-bank" onclick="payToBank(${player.id})">은행에 지불</button>
-                        </div>
-                        <div class="transfer-controls">
-                            <select id="transfer-to-${player.id}">
-                                ${otherPlayers}
-                            </select>
-                            <button class="transfer" onclick="transferMoney(${player.id})">송금하기</button>
-                        </div>
-                    </div>
-                `;
+				playerSection.innerHTML = `
+					<div class="player-header">
+						<input type="text" 
+							   class="player-name" 
+							   value="${player.name}"
+							   onchange="updatePlayerName(${player.id}, this.value)"
+							   onclick="this.select()"
+						>
+					</div>
+					<div class="balance">${formatMoney(player.balance)}원</div>
+					<div class="controls">
+						<div class="bank-controls">
+							<input type="number" id="amount-${player.id}" placeholder="금액" style="width: 120px;">
+							<button class="receive-bank" onclick="receiveFromBank(${player.id})">은행에서 받기</button>
+							<button class="pay-bank" onclick="payToBank(${player.id})">은행에 지불</button>
+						</div>
+						<div class="transfer-controls">
+							<select id="transfer-to-${player.id}">
+								${otherPlayers}
+							</select>
+							<button class="transfer" onclick="transferMoney(${player.id})">송금하기</button>
+						</div>
+					</div>
+				`;
 
-                // 플레이어 1,2는 왼쪽, 3,4는 오른쪽에 배치
-                if (index < 2) {
-                    playersLeftDiv.appendChild(playerSection);
-                } else {
-                    playersRightDiv.appendChild(playerSection);
-                }
-            });
-        }
+				if (index < 2) {
+					playersLeftDiv.appendChild(playerSection);
+				} else {
+					playersRightDiv.appendChild(playerSection);
+				}
+			});
+			
+			// 거래 내역 업데이트
+			updateHistory();
+		}
+
+		// 플레이어 이름 업데이트 함수 추가
+		function updatePlayerName(playerId, newName) {
+			const player = players.find(p => p.id === playerId);
+			if (player) {
+				player.name = newName;
+				localStorage.setItem(`player${playerId}Name`, newName);
+				updateDisplay(); // 모든 선택박스의 이름도 업데이트하기 위해
+			}
+		}
 
         function formatMoney(amount) {
             return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
